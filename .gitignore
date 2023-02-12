@@ -161,4 +161,3 @@ cython_debug/
 
 # Talib and tradeBot environment
 ta-lib/
-tradeBot/

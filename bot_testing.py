@@ -16,30 +16,34 @@ from ta.volatility import BollingerBands
 from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.trend import MACD, EMAIndicator
 
+BIGGEST_IND_PERIOD = 30
+RSI_PERIOD = 14
+RSI_OVERBOUGHT = 70
+RSI_OVERSOLD = 30
+
 def macd(df):
-    df['macd'] = MACD(df['close']).macd()
+    macd_func = MACD(df['close'])
+    df['macd'] = macd_func.macd()
+    df['macd_signal'] = macd_func.macd_signal()
     return df
 
 def stoch(df):
-    df['stoch'] = StochasticOscillator(df['high'], df['low'], df['close']).stoch()
+    stoch_func = StochasticOscillator(df['high'], df['low'], df['close'])
+    df['stoch'] = stoch_func.stoch()
+    df['stoch_signal'] = stoch_func.stoch_signal()
     return df
 
-def RSI(df,timePeriod=14):
+def RSI(df):
     df['rsi'] = RSIIndicator(df['close']).rsi()
+    df['rsi_signal'] = np.where(df['rsi']>RSI_OVERBOUGHT, -1, np.where(df['rsi']<RSI_OVERSOLD, 1, 0))
     return df
 
-# def SMA(close,sPeriod,lPeriod):
-#     shortSMA = ta.SMA(close,sPeriod)
-#     longSMA = ta.SMA(close,lPeriod)
-#     smaSell = ((shortSMA <= longSMA) & (shortSMA.shift(1) >= longSMA.shift(1)))
-#     smaBuy = ((shortSMA >= longSMA) & (shortSMA.shift(1) <= longSMA.shift(1)))
-#     return smaSell,smaBuy,shortSMA,longSMA
-
-def SMA(df,faPeriod=14,slPeriod=30, siPeriod=0):
+def SMA(df):
     df['ema'] = EMAIndicator(df['close']).ema_indicator()
+    df['ema_signal'] = np.where(df['close']>df['ema'], -1, np.where(df['close']<df['ema'], 1, 0))
     return df
 
-def bollingerBands(df, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0):
+def bollingerBands(df):
     indicator_bb = BollingerBands(close=df["close"], window=20, window_dev=2)
     # Calculate Bollinger Bands
     df['bb_upper']  = indicator_bb.bollinger_hband()
@@ -59,14 +63,9 @@ df = bollingerBands(df)
 df = SMA(df)
 df = stoch(df)
 df = RSI(df)
-print(df.tail())
+print(df[['macd', 'macd_signal']].tail())
 
 #%%
-
-BIGGEST_IND_PERIOD = 30
-RSI_PERIOD = 14
-RSI_OVERBOUGHT = 70
-RSI_OVERSOLD = 30
 
 # #%%
 # course = []
@@ -117,17 +116,22 @@ RSI_OVERSOLD = 30
 #     stochSell = ((slowk < slowd) & (slowk.shift(1) > slowd.shift(1))) & (slowd > 80)
 #     stochBuy = ((slowk > slowd) & (slowk.shift(1) < slowd.shift(1))) & (slowd < 20)
 #     return stochSell,stochBuy, slowk,slowd
-def macd(df):
-    df['macd'] = MACD(df['close']).macd()
-    return df
+# def macd(df):
+#     macd_func = MACD(df['close'])
+#     df['macd'] = macd_func.macd()
+#     df['macd_signal'] = macd_func.macd_signal()
+#     return df
 
-def stoch():
-    df['stoch'] = StochasticOscillator(df['high'], df['low'], df['close']).stoch()
-    return df
+# def stoch():
+#     stoch_func = StochasticOscillator(df['high'], df['low'], df['close'])
+#     df['stoch'] = stoch_func.stoch()
+#     df['stoch_signal'] = stoch_func.stoch_signal()
+#     return df
 
-def RSI(df,timePeriod=14):
-    df['rsi'] = RSIIndicator(df['close']).rsi()
-    return df
+# def RSI(df,timePeriod=14):
+#     df['rsi'] = RSIIndicator(df['close']).rsi()
+#     df['rsi_signal'] = np.where(df['rsi']>RSI_OVERBOUGHT, -1, np.where(df['rsi']<RSI_OVERSOLD, 1, 0))
+#     return df
 
 # def SMA(close,sPeriod,lPeriod):
 #     shortSMA = ta.SMA(close,sPeriod)
@@ -140,10 +144,10 @@ def SMA(df,faPeriod=14,slPeriod=30, siPeriod=0):
     df['ema'] = EMAIndicator(df['Close']).ema_indicator()
     return df
 
-def bollingerBands(df, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0):
-    # Calculate Bollinger Bands
-    df['bb_upper'], df['bb_middle'], df['bb_lower'] = BollingerBands(df['Close']).bollinger_bands()
-    return df
+# def bollingerBands(df, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0):
+#     # Calculate Bollinger Bands
+#     df['bb_upper'], df['bb_middle'], df['bb_lower'] = BollingerBands(df['Close']).bollinger_bands()
+#     return df
 # #%%
 # # Bollinger bands
 # upperband, middleband, lowerband = BBANDS(close, timeperiod=5, nbdevup=2, nbdevdn=2, matype=0)
